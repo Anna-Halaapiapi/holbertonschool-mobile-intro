@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { useState } from 'react'; // used to manage input state
 import { Button, Text, TextInput, View } from 'react-native';
 import { db } from '../database'; // db connection/instance
-import { styles } from './styles'; // use the shared file of styles
+import { styles } from '../styles/styles'; // use the shared file of styles
 
 export default function AddActivityScreen() {
   const [steps, setSteps] = useState(''); // store user's input of steps

@@ -4,7 +4,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Button, Text, View } from 'react-native';
 import { db } from '../database'; // db connection/instance
-import { styles } from './styles'; // use the shared file of styles
+import { styles } from '../styles/styles'; // use the shared file of styles
 
 type Activity = { // define shape of an Activity
     id: number;
@@ -14,7 +14,7 @@ type Activity = { // define shape of an Activity
 
 export default function HomeScreen() { // display the list of entries in the activities table
   const [activities, setActivities] = useState<Activity[]>([]);
-    const loadActivities = () => {
+    const loadActivities = () => { // reloads activities list 
     const result = db.getAllSync(
       'SELECT * FROM activities ORDER BY date DESC;' // get all activities and sort by newest first
     ) as Activity[];
@@ -24,7 +24,7 @@ export default function HomeScreen() { // display the list of entries in the act
 
   useFocusEffect(
     useCallback(() => {
-      loadActivities(); // reload data when screen comes into focus
+      loadActivities(); // reload list 
     }, [])
   );
 
@@ -32,9 +32,19 @@ export default function HomeScreen() { // display the list of entries in the act
     <View style={styles.screenContainer}>
       <Text style={styles.heading}>Home screen</Text>
 
-      <Button
+      <Button // add activity button -> redirect to add activtiy screen
         title="Add activity"
         onPress={() => router.push('/add-activity')}
+      />
+      
+      <View style={styles.verticalSpace}></View>
+
+      <Button // Delete all button -> delete all activities from db
+        title="Delete all"
+        onPress={() => {
+          db.runSync('DELETE FROM activities;')
+          loadActivities(); // reload list
+      }}
       />
 
       <FlashList
