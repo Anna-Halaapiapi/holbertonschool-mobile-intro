@@ -1,74 +1,53 @@
+// Home screen: display db activity entries
+import { FlashList } from '@shopify/flash-list';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Button, FlatList, StyleSheet, Text, View } from 'react-native';
-import { db } from '../database';
+import { Button, Text, View } from 'react-native';
+import { db } from '../database'; // db connection/instance
+import { styles } from './styles'; // use the shared file of styles
 
-// define shape of an Activity
-type Activity = {
+type Activity = { // define shape of an Activity
     id: number;
     steps: number;
     date: number;
 };
 
-// display the list of entries in the activities table and display them on the home screen
-export default function HomeScreen() {
+export default function HomeScreen() { // display the list of entries in the activities table
   const [activities, setActivities] = useState<Activity[]>([]);
     const loadActivities = () => {
     const result = db.getAllSync(
-      'SELECT * FROM activities ORDER BY date DESC;'
+      'SELECT * FROM activities ORDER BY date DESC;' // get all activities and sort by newest first
     ) as Activity[];
 
-    setActivities(result);
+    setActivities(result); // update state with results
   };
 
   useFocusEffect(
     useCallback(() => {
-      loadActivities();
+      loadActivities(); // reload data when screen comes into focus
     }, [])
   );
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Home screen</Text>
+  return ( // render content on page
+    <View style={styles.screenContainer}>
+      <Text style={styles.heading}>Home screen</Text>
 
       <Button
         title="Add activity"
         onPress={() => router.push('/add-activity')}
       />
 
-      <FlatList
+      <FlashList
         data={activities}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <View style={styles.item}>
+          <View style={styles.listItem}>
             <Text>Steps: {item.steps}</Text>
             <Text>Date: {new Date(item.date * 1000).toLocaleString()}</Text>
           </View>
         )}
-        ListEmptyComponent={<Text style={styles.empty}>No activities yet</Text>}
+        ListEmptyComponent={<Text style={styles.emptyList}>No activities yet</Text>}
       />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    paddingTop: 60,
-  },
-  title: {
-    fontSize: 22,
-    marginBottom: 20,
-  },
-  item: {
-    marginTop: 15,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-  },
-  empty: {
-    marginTop: 20,
-  },
-});
