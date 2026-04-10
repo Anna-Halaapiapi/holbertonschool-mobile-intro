@@ -3,6 +3,8 @@ import { FlashList } from '@shopify/flash-list';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Button, Text, View } from 'react-native';
+import { RectButton } from 'react-native-gesture-handler';
+import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable'; // enable swipeable activities
 import { db } from '../database'; // db connection/instance
 import { styles } from '../styles/styles'; // use the shared file of styles
 
@@ -28,10 +30,25 @@ export default function HomeScreen() { // display the list of entries in the act
     }, [])
   );
 
+  // swipe to delete an activity
+  const renderLeftActions = (item: Activity) => {
+    return (
+      <RectButton
+        style={styles.deleteButton}
+        onPress={() => { // if user presses -> delete activity record from db
+          db.runSync('DELETE FROM activities WHERE id = ?;', [item.id]);
+          loadActivities(); //reload list
+        }}
+      >
+        <Text style={styles.deleteButtonText}>Delete</Text>
+      </RectButton>
+    );
+  };
+
+
   return ( // render content on page
     <View style={styles.screenContainer}>
       <Text style={styles.heading}>Home screen</Text>
-
       <Button // add activity button -> redirect to add activtiy screen
         title="Add activity"
         onPress={() => router.push('/add-activity')}
@@ -47,14 +64,17 @@ export default function HomeScreen() { // display the list of entries in the act
       }}
       />
 
-      <FlashList
+      <FlashList // ilst of activities
         data={activities}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <View style={styles.listItem}>
-            <Text>Steps: {item.steps}</Text>
-            <Text>Date: {new Date(item.date * 1000).toLocaleString()}</Text>
-          </View>
+          // wrap each list item in the renderLeftActions func
+          <Swipeable renderLeftActions={() => renderLeftActions(item)}>
+            <View style={styles.listItem}>
+              <Text>Steps: {item.steps}</Text>
+              <Text>Date: {new Date(item.date * 1000).toLocaleString()}</Text>
+            </View>
+          </Swipeable>
         )}
         ListEmptyComponent={<Text style={styles.emptyList}>No activities yet</Text>}
       />
